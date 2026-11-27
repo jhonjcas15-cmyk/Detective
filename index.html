@@ -1,0 +1,1838 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Caso #01: El Silencio en la Mansión Valdés</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg-dark: #0f1115;
+      --bg-panel: #171a21;
+      --bg-card: #1f242e;
+      --border-color: #2e3543;
+      --text-main: #e6e8ec;
+      --text-muted: #9aa3b2;
+      --accent-gold: #d4a359;
+      --accent-gold-hover: #e5b76e;
+      --accent-cyan: #38bdf8;
+      --accent-red: #e05252;
+      --accent-green: #4caf7d;
+      --paper-bg: #f4efe6;
+      --paper-text: #221f1d;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: var(--bg-panel);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.9rem 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .brand-badge {
+      background: var(--accent-red);
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .brand h1 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: 0.02em;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background-color: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 0.45rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn:hover:not(:disabled) {
+      border-color: var(--accent-gold);
+      color: var(--accent-gold);
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-gold);
+      color: #14120e;
+      border-color: var(--accent-gold);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background-color: var(--accent-gold-hover);
+      color: #14120e;
+    }
+
+    .btn-cyan {
+      background-color: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    .btn-cyan:hover:not(:disabled) {
+      background-color: var(--accent-cyan);
+      color: #0f1115;
+    }
+
+    .btn-danger {
+      background-color: rgba(224, 82, 82, 0.15);
+      border-color: var(--accent-red);
+      color: var(--accent-red);
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background-color: var(--accent-red);
+      color: #fff;
+    }
+
+    /* Turn & Score Bar */
+    .coop-bar {
+      background: linear-gradient(90deg, #161a23 0%, #1c222d 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.65rem 1.25rem;
+      display: none;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .coop-bar.active {
+      display: flex;
+    }
+
+    .player-pills {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+
+    .player-pill {
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border: 1px solid var(--border-color);
+      background: var(--bg-panel);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.2s ease;
+    }
+
+    .player-pill.active-p1 {
+      border-color: var(--accent-gold);
+      background: rgba(212, 163, 89, 0.16);
+      color: var(--accent-gold);
+      box-shadow: 0 0 12px rgba(212, 163, 89, 0.2);
+    }
+
+    .player-pill.active-p2 {
+      border-color: var(--accent-cyan);
+      background: rgba(56, 189, 248, 0.16);
+      color: var(--accent-cyan);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+    }
+
+    .team-score {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .online-badge {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      background: rgba(76, 175, 125, 0.15);
+      border: 1px solid var(--accent-green);
+      color: var(--accent-green);
+      font-family: monospace;
+    }
+
+    /* Navigation Tabs */
+    .nav-tabs {
+      display: flex;
+      background-color: var(--bg-panel);
+      border-bottom: 1px solid var(--border-color);
+      overflow-x: auto;
+      padding: 0 1rem;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--text-muted);
+      padding: 0.85rem 1.1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+    }
+
+    .tab-btn.active {
+      color: var(--accent-gold);
+      border-bottom-color: var(--accent-gold);
+    }
+
+    .tab-btn .badge-count {
+      background: var(--bg-card);
+      color: var(--text-main);
+      font-size: 0.72rem;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      margin-left: 0.35rem;
+      border: 1px solid var(--border-color);
+    }
+
+    main {
+      flex: 1;
+      max-width: 1120px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 3rem;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Dossier Paper Card */
+    .dossier {
+      background-color: var(--paper-bg);
+      color: var(--paper-text);
+      border-radius: 8px;
+      padding: 1.75rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+      border: 1px solid #d5ccb8;
+      margin-bottom: 1.5rem;
+    }
+
+    .dossier-header {
+      border-bottom: 2px solid #221f1d;
+      padding-bottom: 0.85rem;
+      margin-bottom: 1.15rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .dossier-stamp {
+      border: 2px solid #b83232;
+      color: #b83232;
+      font-weight: 800;
+      font-size: 0.78rem;
+      padding: 0.2rem 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      transform: rotate(-2deg);
+    }
+
+    .dossier p {
+      margin-bottom: 0.85rem;
+      font-size: 0.96rem;
+    }
+
+    .dossier-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem;
+      background: rgba(0,0,0,0.05);
+      padding: 0.9rem;
+      border-radius: 6px;
+      margin: 1rem 0;
+      font-size: 0.88rem;
+    }
+
+    /* Mode Selector Cards */
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .mode-card {
+      background: var(--bg-panel);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.15rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .mode-card:hover {
+      border-color: var(--text-muted);
+    }
+
+    .mode-card.selected {
+      border-color: var(--accent-gold);
+      background: rgba(212, 163, 89, 0.08);
+    }
+
+    .mode-card h3 {
+      font-size: 1rem;
+      margin-bottom: 0.35rem;
+      color: var(--text-main);
+    }
+
+    .mode-card p {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+    }
+
+    .setup-box {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .input-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      margin-top: 0.75rem;
+      align-items: flex-end;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      flex: 1;
+      min-width: 190px;
+    }
+
+    .field label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    input[type="text"], input[type="password"], select, textarea {
+      background: var(--bg-dark);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.6rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      width: 100%;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent-gold);
+    }
+
+    /* Crime Scene Grid */
+    .scene-layout {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 820px) {
+      .scene-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .room-map {
+      background: radial-gradient(circle at center, #222733 0%, #14171f 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1.25rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+      gap: 0.85rem;
+      align-content: start;
+    }
+
+    .hotspot-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.9rem 0.75rem;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      color: var(--text-main);
+    }
+
+    .hotspot-btn:hover {
+      border-color: var(--accent-gold);
+      transform: translateY(-2px);
+    }
+
+    .hotspot-btn.inspected {
+      border-color: var(--accent-green);
+      background: rgba(76, 175, 125, 0.08);
+    }
+
+    .hotspot-icon {
+      font-size: 1.4rem;
+    }
+
+    .hotspot-title {
+      font-weight: 700;
+      font-size: 0.88rem;
+    }
+
+    .hotspot-status {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
+
+    .hotspot-btn.inspected .hotspot-status {
+      color: var(--accent-green);
+      font-weight: 600;
+    }
+
+    .inspection-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 280px;
+    }
+
+    .clue-tag {
+      display: inline-block;
+      background: rgba(212, 163, 89, 0.15);
+      border: 1px solid var(--accent-gold);
+      color: var(--accent-gold);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      margin-top: 0.75rem;
+    }
+
+    /* Suspects & Interrogation */
+    .suspect-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .suspect-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .suspect-card:hover {
+      border-color: var(--text-muted);
+    }
+
+    .suspect-card.active {
+      border-color: var(--accent-gold);
+      background: rgba(212, 163, 89, 0.08);
+    }
+
+    .suspect-card.broken {
+      border-left: 4px solid var(--accent-red);
+    }
+
+    .suspect-role {
+      font-size: 0.78rem;
+      color: var(--accent-gold);
+      font-weight: 600;
+    }
+
+    .interrogation-box {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1.25rem;
+    }
+
+    .dialogue-log {
+      background: var(--bg-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1rem 0;
+      min-height: 130px;
+      max-height: 280px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .msg-bubble {
+      padding: 0.65rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      background: var(--bg-card);
+      border-left: 3px solid var(--accent-gold);
+    }
+
+    .msg-bubble.breakthrough {
+      border-left-color: var(--accent-red);
+      background: rgba(224, 82, 82, 0.1);
+    }
+
+    .questions-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .confront-bar {
+      border-top: 1px solid var(--border-color);
+      padding-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      align-items: center;
+    }
+
+    /* Notebook & Timeline */
+    .notebook-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 780px) {
+      .notebook-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel-box {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+
+    .panel-box h3 {
+      font-size: 1rem;
+      margin-bottom: 0.85rem;
+      color: var(--accent-gold);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.5rem;
+    }
+
+    .clue-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.75rem;
+      margin-bottom: 0.65rem;
+      font-size: 0.88rem;
+    }
+
+    .timeline-item {
+      border-left: 2px solid var(--accent-gold);
+      padding-left: 0.85rem;
+      margin-bottom: 0.85rem;
+      font-size: 0.88rem;
+    }
+
+    .timeline-time {
+      font-weight: 700;
+      color: var(--accent-gold);
+      font-size: 0.8rem;
+    }
+
+    /* Deduction Form */
+    .deduction-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      margin: 1.25rem 0;
+    }
+
+    .verdict-box {
+      margin-top: 1.5rem;
+      background: var(--bg-panel);
+      border: 2px solid var(--accent-gold);
+      border-radius: 10px;
+      padding: 1.5rem;
+      display: none;
+    }
+
+    .verdict-box.visible {
+      display: block;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 100;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      max-width: 620px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+
+    .sql-block {
+      background: #0a0c0f;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.85rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.78rem;
+      color: #a5d6ff;
+      overflow-x: auto;
+      white-space: pre;
+      margin: 0.65rem 0;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      background: var(--bg-card);
+      border: 1px solid var(--accent-gold);
+      color: var(--text-main);
+      padding: 0.7rem 1rem;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      z-index: 120;
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: all 0.2s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span class="brand-badge">Expediente #01</span>
+      <h1>El Silencio en la Mansión Valdés</h1>
+    </div>
+    <div class="header-actions">
+      <button class="btn" id="btnAudio" onclick="toggleAudio()">🔊 Sonido: ON</button>
+      <button class="btn" onclick="openSupabaseModal()">⚙️ Config Online</button>
+      <button class="btn btn-danger" onclick="resetGame()">↻ Reiniciar Caso</button>
+    </div>
+  </header>
+
+  <!-- Barra de Turnos y Puntaje (Coop Local / Online) -->
+  <div class="coop-bar" id="coopBar">
+    <div class="player-pills">
+      <div class="player-pill active-p1" id="pillP1">
+        <span>🕵️</span>
+        <span id="labelP1">Detective 1</span>
+        <strong id="scoreP1">0 pts</strong>
+      </div>
+      <div class="player-pill" id="pillP2">
+        <span>🕵️‍♀️</span>
+        <span id="labelP2">Detective 2</span>
+        <strong id="scoreP2">0 pts</strong>
+      </div>
+      <span class="online-badge" id="roomBadge" style="display:none;">SALA: ------</span>
+    </div>
+    <div class="team-score">
+      <span>Equipo: <strong id="teamTotalScore" style="color:var(--accent-gold)">0 pts</strong></span>
+      <button class="btn btn-cyan" id="btnCopyLink" style="display:none;" onclick="copyRoomLink()">🔗 Copiar Link</button>
+      <button class="btn" id="btnPassTurn" onclick="manualPassTurn()">⇄ Pasar Turno</button>
+    </div>
+  </div>
+
+  <nav class="nav-tabs">
+    <button class="tab-btn active" data-tab="briefing" onclick="switchTab('briefing')">1. Informe Inicial</button>
+    <button class="tab-btn" data-tab="scene" onclick="switchTab('scene')">2. Escena del Crimen <span class="badge-count" id="countClues">0/7</span></button>
+    <button class="tab-btn" data-tab="interrogation" onclick="switchTab('interrogation')">3. Interrogatorios <span class="badge-count" id="countAlibis">0/4</span></button>
+    <button class="tab-btn" data-tab="notebook" onclick="switchTab('notebook')">4. Libreta y Cronología</button>
+    <button class="tab-btn" data-tab="deduction" onclick="switchTab('deduction')">5. Acusación Final</button>
+  </nav>
+
+  <main>
+    <!-- SECCIÓN 1: INFORME INICIAL Y CONFIGURACIÓN DE PARTIDA -->
+    <section id="sec-briefing" class="section active">
+      <div class="dossier">
+        <div class="dossier-header">
+          <div>
+            <h2 style="font-size:1.3rem;">DEPARTAMENTO DE INVESTIGACIONES CRIMINALES</h2>
+            <div style="font-size:0.85rem; color:#5a524c;">Caso 409-B • Homicidio en Residencia Privada</div>
+          </div>
+          <span class="dossier-stamp">Confidencial</span>
+        </div>
+        <p><strong>Víctima:</strong> Arturo Valdés (62 años), coleccionista de arte y empresario vitivinícola.</p>
+        <p><strong>Resumen de los hechos:</strong> Anoche, durante una tormenta eléctrica, Arturo Valdés fue hallado sin vida dentro de su estudio privado en el segundo piso de la Mansión Valdés. La puerta estaba cerrada por dentro con pestillo y las ventanas aseguradas.</p>
+        <p>El médico forense estima el fallecimiento entre las <strong>22:15 y las 23:00</strong>. Aunque a simple vista parece un paro cardíaco fulminante mientras bebía su copa nocturna, la fiscalía sospecha que alguien dentro de la casa planeó su muerte.</p>
+        <div class="dossier-meta">
+          <div><strong>📍 Ubicación:</strong> Estudio Privado, Ala Norte</div>
+          <div><strong>⛈️ Clima:</strong> Tormenta severa, corte de luz a las 22:30</div>
+          <div><strong>👥 Presentes:</strong> 4 personas en la mansión</div>
+          <div><strong>🎯 Objetivo:</strong> Identificar culpable, arma y móvil</div>
+        </div>
+      </div>
+
+      <div class="setup-box">
+        <h3 style="margin-bottom:0.85rem; color:var(--accent-gold);">Seleccioná el modo de investigación</h3>
+        <div class="mode-grid">
+          <div class="mode-card selected" id="mode-solo" onclick="selectGameMode('solo')">
+            <h3>🕵️ 1 Jugador (Individual)</h3>
+            <p>Investigá el caso a tu ritmo, recolectá todas las pruebas y formulá la acusación.</p>
+          </div>
+          <div class="mode-card" id="mode-coop" onclick="selectGameMode('coop')">
+            <h3>👥 2 Jugadores (Mismo Dispositivo)</h3>
+            <p>Jueguen juntos turnándose en cada acción y sumando puntos en equipo.</p>
+          </div>
+          <div class="mode-card" id="mode-online" onclick="selectGameMode('online')">
+            <h3>🌐 2 Jugadores Online (Tiempo Real)</h3>
+            <p>Cada uno desde su celular o PC sincronizados en vivo mediante Supabase.</p>
+          </div>
+        </div>
+
+        <!-- Panel Local (1P o 2P) -->
+        <div id="setup-local">
+          <div class="input-row">
+            <div class="field">
+              <label for="inputP1Name">Nombre Detective 1</label>
+              <input type="text" id="inputP1Name" value="Jhon" placeholder="Tu nombre" />
+            </div>
+            <div class="field" id="fieldP2Local" style="display:none;">
+              <label for="inputP2Name">Nombre Detective 2</label>
+              <input type="text" id="inputP2Name" value="Sofi" placeholder="Nombre de tu pareja" />
+            </div>
+            <button class="btn btn-primary" onclick="startInvestigation()">Comenzar Investigación →</button>
+          </div>
+        </div>
+
+        <!-- Panel Online Supabase -->
+        <div id="setup-online" style="display:none;">
+          <p style="font-size:0.86rem; color:var(--text-muted); margin-bottom:0.75rem;">
+            Creá una sala privada y compartile el link a tu pareja, o ingresá el código de una sala ya creada.
+          </p>
+          <div class="input-row">
+            <div class="field">
+              <label for="onlinePlayerName">Tu Nombre de Detective</label>
+              <input type="text" id="onlinePlayerName" value="Jhon" placeholder="Tu nombre" />
+            </div>
+            <button class="btn btn-primary" onclick="createOnlineRoom()">+ Crear Sala Online</button>
+          </div>
+          <div class="input-row" style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border-color);">
+            <div class="field">
+              <label for="joinRoomCode">Código de Sala Existente</label>
+              <input type="text" id="joinRoomCode" placeholder="Ej: VALDES" style="text-transform:uppercase;" />
+            </div>
+            <button class="btn btn-cyan" onclick="joinOnlineRoom()">Unirse a Sala →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 2: ESCENA DEL CRIMEN -->
+    <section id="sec-scene" class="section">
+      <div class="scene-layout">
+        <div>
+          <h3 style="margin-bottom:0.75rem; color:var(--accent-gold);">Plano del Estudio Privado (Tocá cada zona para inspeccionar)</h3>
+          <div class="room-map" id="roomMap"></div>
+        </div>
+        <div class="inspection-panel" id="inspectionPanel">
+          <div>
+            <span style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em;">Visor Forense</span>
+            <h3 id="inspectTitle" style="margin:0.35rem 0 0.75rem; font-size:1.15rem;">Seleccioná un punto de interés</h3>
+            <p id="inspectDesc" style="color:var(--text-muted); font-size:0.92rem;">
+              Explorá el estudio de Arturo Valdés en busca de pistas físicas, rastros químicos o documentos alterados. En modo cooperativo, descubrir una pista nueva suma +15 puntos y pasa el turno.
+            </p>
+            <div id="inspectClueBadge"></div>
+          </div>
+          <div style="margin-top:1.25rem; padding-top:0.85rem; border-top:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.82rem; color:var(--text-muted);" id="sceneProgressText">0 de 7 zonas revisadas</span>
+            <button class="btn" onclick="switchTab('interrogation')">Ir a Interrogatorios →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 3: INTERROGATORIOS -->
+    <section id="sec-interrogation" class="section">
+      <h3 style="margin-bottom:0.75rem; color:var(--accent-gold);">Sospechosos en la Mansión</h3>
+      <div class="suspect-cards" id="suspectCards"></div>
+
+      <div class="interrogation-box" id="interrogationBox">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+          <div>
+            <h3 id="currentSuspectName">Seleccioná un sospechoso</h3>
+            <div id="currentSuspectAlibi" style="font-size:0.84rem; color:var(--text-muted);"></div>
+          </div>
+          <span id="alibiStatusBadge" class="clue-tag" style="margin-top:0;">Coartada sin verificar</span>
+        </div>
+
+        <div class="dialogue-log" id="dialogueLog">
+          <div style="color:var(--text-muted); font-size:0.88rem;">Elegí una pregunta para interrogar o presentá una prueba de tu inventario para confrontar contradicciones.</div>
+        </div>
+
+        <div style="font-size:0.82rem; color:var(--text-muted); margin-bottom:0.4rem;">Preguntas disponibles (no consumen turno):</div>
+        <div class="questions-list" id="questionsList"></div>
+
+        <div class="confront-bar">
+          <select id="evidenceSelect" style="max-width:320px;">
+            <option value="">-- Elegir prueba para confrontar --</option>
+          </select>
+          <button class="btn btn-primary" onclick="presentEvidence()">⚡ Confrontar con Prueba</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 4: LIBRETA Y CRONOLOGÍA -->
+    <section id="sec-notebook" class="section">
+      <div class="notebook-grid">
+        <div class="panel-box">
+          <h3>🗂️ Evidencias Recolectadas</h3>
+          <div id="notebookCluesList">
+            <p style="color:var(--text-muted); font-size:0.88rem;">Todavía no recolectaste pruebas en la escena del crimen.</p>
+          </div>
+        </div>
+        <div class="panel-box">
+          <h3>⏱️ Cronología Reconstruida</h3>
+          <div id="notebookTimeline"></div>
+          <div style="margin-top:1.25rem;">
+            <label for="scratchpadInput" style="display:block; font-size:0.84rem; font-weight:600; color:var(--accent-gold); margin-bottom:0.4rem;">
+              📝 Apuntes Compartidos de los Detectives:
+            </label>
+            <textarea id="scratchpadInput" rows="4" placeholder="Anoten aquí sus sospechas, horarios o conexiones..." oninput="saveScratchpad()"></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 5: ACUSACIÓN FINAL -->
+    <section id="sec-deduction" class="section">
+      <div class="panel-box">
+        <h3>⚖️ Tablero de Deducción Final</h3>
+        <p style="font-size:0.9rem; color:var(--text-muted);">
+          Cuando hayan reunido suficientes pruebas y roto las coartadas clave, presenten su hipótesis final ante el fiscal.
+        </p>
+
+        <div class="deduction-grid">
+          <div class="field">
+            <label for="accuseSuspect">1. ¿Quién asesinó a Arturo Valdés?</label>
+            <select id="accuseSuspect">
+              <option value="">-- Seleccionar culpable --</option>
+              <option value="elena">Elena Valdés (Esposa)</option>
+              <option value="marcos">Marcos Ríos (Socio comercial)</option>
+              <option value="clara">Clara Méndez (Ama de llaves)</option>
+              <option value="julian">Dr. Julián Ortega (Médico personal)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="accuseWeapon">2. ¿Cuál fue el método / arma homicida?</label>
+            <select id="accuseWeapon">
+              <option value="">-- Seleccionar método --</option>
+              <option value="veneno_copa">Cianuro vertido directamente en la copa de vino</option>
+              <option value="capsula_medicamento">Cápsula de medicamento manipulada con aconitina</option>
+              <option value="golpe_pisapapeles">Golpe contundente con pisapapeles de bronce</option>
+              <option value="asfixia_gas">Fuga de monóxido de la chimenea sellada</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="accuseMotive">3. ¿Cuál fue el móvil principal del crimen?</label>
+            <select id="accuseMotive">
+              <option value="">-- Seleccionar móvil --</option>
+              <option value="testamento">Evitar ser desheredada tras descubrirse un romance</option>
+              <option value="desfalco">Encubrir una estafa millonaria en la bodega</option>
+              <option value="chantaje">Silenciar el encubrimiento de una negligencia médica</option>
+              <option value="venganza">Venganza por el despido injustificado de un familiar</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="submitDeduction()">Cerrar Caso y Presentar Acusación</button>
+
+        <div class="verdict-box" id="verdictBox"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL CONFIGURACIÓN SUPABASE -->
+  <div class="modal-backdrop" id="supabaseModal">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h3 style="color:var(--accent-gold);">⚙️ Configuración Online (Supabase)</h3>
+        <button class="btn" onclick="closeSupabaseModal()">✕</button>
+      </div>
+      <p style="font-size:0.86rem; color:var(--text-muted); margin-bottom:0.85rem;">
+        Para jugar cada uno desde su dispositivo en tiempo real, pegá las credenciales de tu proyecto Supabase (se guardan localmente en este navegador).
+      </p>
+      <div class="field" style="margin-bottom:0.75rem;">
+        <label for="sbUrlInput">Supabase Project URL</label>
+        <input type="text" id="sbUrlInput" placeholder="https://tu-proyecto.supabase.co" />
+      </div>
+      <div class="field" style="margin-bottom:0.85rem;">
+        <label for="sbKeyInput">Supabase Anon Public Key</label>
+        <input type="password" id="sbKeyInput" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." />
+      </div>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.1rem;">
+        <button class="btn btn-primary" onclick="saveSupabaseConfig()">Guardar Credenciales</button>
+        <button class="btn" onclick="copySqlScript()">📋 Copiar SQL para Supabase</button>
+      </div>
+
+      <div style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">Script SQL (ejecutar una única vez en SQL Editor):</div>
+      <div class="sql-block" id="sqlScriptBlock">create table if not exists public.detective_rooms (
+  room_code text primary key,
+  state jsonb not null,
+  updated_at timestamptz default now()
+);
+
+alter table public.detective_rooms enable row level security;
+
+create policy "Acceso publico salas detective"
+  on public.detective_rooms
+  for all
+  using (true)
+  with check (true);
+
+alter publication supabase_realtime add table public.detective_rooms;</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ==========================================
+    // 1. DATOS DEL CASO (CONSTANTES)
+    // ==========================================
+    const HOTSPOTS = [
+      {
+        id: "desk",
+        icon: "🖋️",
+        title: "Escritorio de Caoba",
+        desc: "Sobre el secante de cuero hay una carta de renuncia sin firmar dirigida al Dr. Julián Ortega y una pluma estilográfica abierta. No hay signos de forcejeo.",
+        clueId: "clue_letter",
+        clueTitle: "Borrador de Carta de Despido",
+        clueDetail: "Arturo planeaba denunciar al Dr. Ortega ante el colegio médico por falsificar certificados de aptitud en la bodega.",
+        timeline: { time: "21:40", text: "Arturo redacta una carta anunciando que denunciará al Dr. Ortega." }
+      },
+      {
+        id: "wine",
+        icon: "🍷",
+        title: "Copa de Vino Tinto",
+        desc: "La copa está caída sobre la alfombra. El análisis rápido con reactivo descarta cianuro o arsénico en el líquido restante.",
+        clueId: "clue_wine",
+        clueTitle: "Copa Sin Veneno",
+        clueDetail: "El vino no contiene sustancias tóxicas. La víctima no fue envenenada a través de su bebida.",
+        timeline: { time: "22:10", text: "Arturo sirve una copa de Malbec reserva (sin adulterar)." }
+      },
+      {
+        id: "pillbox",
+        icon: "💊",
+        title: "Pastillero Nocturno",
+        desc: "Un pastillero metálico junto al teléfono. La ranura del 'Jueves Noche' está vacía, pero quedan microcristales azulados adheridos al borde.",
+        clueId: "clue_pills",
+        clueTitle: "Cápsula Adulterada con Aconitina",
+        clueDetail: "Una de las cápsulas para la presión arterial fue reemplazada por otra rellena de aconitina pura, un alcaloide de acción retardada (35-45 min).",
+        timeline: { time: "21:50", text: "Arturo ingiere su medicación nocturna habitual." }
+      },
+      {
+        id: "door",
+        icon: "🚪",
+        title: "Puerta y Pestillo Interior",
+        desc: "Puerta maciza de roble. El pestillo estaba echado desde adentro cuando el ama de llaves forzó la entrada a las 23:10. Nadie salió por aquí tras el ataque.",
+        clueId: "clue_door",
+        clueTitle: "Cuarto Cerrado por Dentro",
+        clueDetail: "Demuestra que el asesino no necesitó estar dentro de la habitación en el momento exacto de la muerte (22:35).",
+        timeline: { time: "22:00", text: "Arturo cierra el estudio con pestillo interior para trabajar solo." }
+      },
+      {
+        id: "safe",
+        icon: "🔐",
+        title: "Caja Fuerte Empotrada",
+        desc: "Abierta y sin daños. Dentro hay joyas familiares intactas y una carpeta financiera con auditorías internas.",
+        clueId: "clue_audit",
+        clueTitle: "Auditoría de la Bodega",
+        clueDetail: "Muestra un desvío de fondos de Marcos Ríos, pero Arturo ya había firmado un acuerdo de pago privado con él esa tarde.",
+        timeline: { time: "19:30", text: "Arturo y Marcos firman un plan de devolución privado por el desfalco." }
+      },
+      {
+        id: "trash",
+        icon: "🗑️",
+        title: "Cesto de Papeles",
+        desc: "Entre facturas arrugadas aparece el envoltorio de aluminio de una cápsula farmacéutica importada y un pañuelo con olor a lavanda.",
+        clueId: "clue_wrapper",
+        clueTitle: "Blíster de Laboratorio Suizo",
+        clueDetail: "El envoltorio corresponde a cápsulas vacías de uso exclusivamente médico recetadas a nombre de la clínica del Dr. Ortega.",
+        timeline: { time: "21:15", text: "Alguien manipula el pastillero en el estudio antes de que Arturo entre." }
+      },
+      {
+        id: "window",
+        icon: "🪟",
+        title: "Ventanal al Jardín",
+        desc: "Cerrado con traba interna. El polvo en el alféizar exterior está intacto pese a la lluvia, descartando cualquier intruso externo.",
+        clueId: "clue_window",
+        clueTitle: "Sin Intrusos Externos",
+        clueDetail: "Confirma que el autor del crimen pertenece al círculo íntimo presente en la mansión.",
+        timeline: { time: "22:30", text: "Corte general de luz durante la tormenta; nadie ingresa desde afuera." }
+      }
+    ];
+
+    const SUSPECTS = [
+      {
+        id: "elena",
+        name: "Elena Valdés",
+        role: "Esposa de la víctima",
+        alibi: "Asegura haber estado en el salón de música leyendo desde las 21:30 hasta el corte de luz.",
+        questions: [
+          { q: "¿Cómo era su relación con Arturo?", a: "Distante desde hace años, pero teníamos un acuerdo civilizado. No tenía necesidad de matarlo." },
+          { q: "¿Entró al estudio anoche?", a: "Pasé cerca de las 21:10 a dejarle su correo, pero él aún estaba cenando abajo." }
+        ],
+        weaknessClue: "clue_wine",
+        confrontSuccess: "Elena suspira: 'Es verdad que discutimos por el divorcio, pero jamás toqué su vino ni sus cosas. Si el vino estaba limpio, revisen quién controlaba su salud'."
+      },
+      {
+        id: "marcos",
+        name: "Marcos Ríos",
+        role: "Socio comercial",
+        alibi: "Afirma que estuvo en la biblioteca haciendo llamadas de negocios toda la noche.",
+        questions: [
+          { q: "¿Discutió con Arturo por dinero?", a: "Tuvimos diferencias contables, sí, pero lo resolvimos antes de la cena." },
+          { q: "¿Sabía dónde guardaba sus remedios?", a: "Ni idea, nunca me meto en los asuntos médicos de Arturo." }
+        ],
+        weaknessClue: "clue_audit",
+        confrontSuccess: "Marcos baja la guardia: 'Bien, hubo un desfalco, pero como ve en ese documento firmado a las 19:30, ya habíamos acordado cómo saldarlo. Si Arturo moría, el acuerdo se anulaba y yo iba preso'."
+      },
+      {
+        id: "clara",
+        name: "Clara Méndez",
+        role: "Ama de llaves",
+        alibi: "Estaba en la cocina preparando infusiones y cerrando los postigos de planta baja.",
+        questions: [
+          { q: "¿Quién preparó el pastillero del señor?", a: "Normalmente lo hago yo por la mañana, pero ayer a las 21:15 vi al Dr. Ortega saliendo del estudio con su maletín." },
+          { q: "¿Quién encontró el cuerpo?", a: "Fui yo a las 23:10 cuando no respondía los llamados tras volver la luz." }
+        ],
+        weaknessClue: "clue_door",
+        confrontSuccess: "Clara asiente con firmeza: 'Tuve que pedirle ayuda a Marcos para derribar la puerta porque el pestillo estaba puesto por dentro. Quien lo mató preparó la trampa antes de las 22:00'."
+      },
+      {
+        id: "julian",
+        name: "Dr. Julián Ortega",
+        role: "Médico personal",
+        alibi: "Dice haber permanecido en la habitación de huéspedes desde las 21:00 por una migraña.",
+        questions: [
+          { q: "¿Revisó a Arturo anoche?", a: "No, no pisé el estudio en toda la noche. Solo bajé cuando gritaron tras el corte de luz." },
+          { q: "¿Qué medicación tomaba Arturo?", a: "Antihipertensivos suaves. Nada que pudiera provocar un paro cardíaco." }
+        ],
+        weaknessClue: "clue_wrapper",
+        confrontSuccess: "¡COARTADA ROTA! El Dr. Ortega palidece al ver el blíster suizo y la carta de despido: '¡Ese envoltorio no debería estar ahí! Arturo iba a arruinar mi carrera con esa denuncia... cambié una de sus cápsulas a las 21:15 sabiendo que haría efecto cuarenta minutos después, cuando yo ya tuviera coartada'."
+      }
+    ];
+
+    // ==========================================
+    // 2. ESTADO GLOBAL DEL JUEGO
+    // ==========================================
+    function createInitialState() {
+      return {
+        mode: "solo", // 'solo' | 'coop' | 'online'
+        started: false,
+        p1Name: "Jhon",
+        p2Name: "Sofi",
+        p1Score: 0,
+        p2Score: 0,
+        currentTurn: 1, // 1 o 2
+        inspectedHotspots: [],
+        unlockedClues: [],
+        askedQuestions: [],
+        brokenAlibis: [],
+        scratchpad: "",
+        solved: false,
+        verdictHtml: ""
+      };
+    }
+
+    let gameState = createInitialState();
+    let selectedHotspotId = null;
+    let selectedSuspectId = "elena";
+    let audioEnabled = true;
+    let audioCtx = null;
+
+    // Variables Online (Supabase)
+    let supabaseClient = null;
+    let roomCode = null;
+    let localPlayerSlot = 1; // 1 = host, 2 = guest
+    let realtimeChannel = null;
+    let isRemoteUpdate = false;
+
+    // ==========================================
+    // 3. AUDIO SINTETIZADO (WEB AUDIO API)
+    // ==========================================
+    function playTone(freq, type = "sine", duration = 0.12, vol = 0.08) {
+      if (!audioEnabled) return;
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      document.getElementById("btnAudio").textContent = audioEnabled ? "🔊 Sonido: ON" : "🔇 Sonido: OFF";
+      if (audioEnabled) playTone(520, "triangle", 0.1);
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(el._timer);
+      el._timer = setTimeout(() => el.classList.remove("show"), 3200);
+    }
+
+    // ==========================================
+    // 4. NAVEGACIÓN Y CONFIGURACIÓN DE MODOS
+    // ==========================================
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tab === tabId);
+      });
+      document.querySelectorAll(".section").forEach(sec => {
+        sec.classList.toggle("active", sec.id === "sec-" + tabId);
+      });
+      playTone(380, "sine", 0.06, 0.04);
+    }
+
+    function selectGameMode(mode) {
+      gameState.mode = mode;
+      ["solo", "coop", "online"].forEach(m => {
+        document.getElementById("mode-" + m).classList.toggle("selected", m === mode);
+      });
+      document.getElementById("setup-local").style.display = (mode === "online") ? "none" : "block";
+      document.getElementById("setup-online").style.display = (mode === "online") ? "block" : "none";
+      document.getElementById("fieldP2Local").style.display = (mode === "coop") ? "flex" : "none";
+      playTone(440, "sine", 0.07, 0.05);
+    }
+
+    function startInvestigation() {
+      const p1 = document.getElementById("inputP1Name").value.trim() || "Detective 1";
+      const p2 = document.getElementById("inputP2Name").value.trim() || "Detective 2";
+      gameState.p1Name = p1;
+      gameState.p2Name = p2;
+      gameState.started = true;
+      gameState.currentTurn = 1;
+      saveLocalState();
+      renderAll();
+      switchTab("scene");
+      playTone(580, "triangle", 0.16);
+      showToast("Investigación iniciada. Revisen la escena del crimen.");
+    }
+
+    // ==========================================
+    // 5. MECÁNICAS DE JUEGO Y TURNOS
+    // ==========================================
+    function canActThisTurn() {
+      if (gameState.mode !== "online") return true;
+      if (gameState.currentTurn !== localPlayerSlot) {
+        const activeName = gameState.currentTurn === 1 ? gameState.p1Name : gameState.p2Name;
+        showToast(`Es el turno de ${activeName}. Esperá tu relevo.`);
+        playTone(180, "sawtooth", 0.14, 0.06);
+        return false;
+      }
+      return true;
+    }
+
+    function awardPointsAndPassTurn(points) {
+      if (gameState.mode === "solo") {
+        gameState.p1Score = Math.max(0, gameState.p1Score + points);
+      } else {
+        if (gameState.currentTurn === 1) {
+          gameState.p1Score = Math.max(0, gameState.p1Score + points);
+          gameState.currentTurn = 2;
+        } else {
+          gameState.p2Score = Math.max(0, gameState.p2Score + points);
+          gameState.currentTurn = 1;
+        }
+      }
+    }
+
+    function manualPassTurn() {
+      if (gameState.mode === "solo") return;
+      if (!canActThisTurn()) return;
+      gameState.currentTurn = gameState.currentTurn === 1 ? 2 : 1;
+      syncState();
+      renderAll();
+      playTone(490, "triangle", 0.12);
+      const nextName = gameState.currentTurn === 1 ? gameState.p1Name : gameState.p2Name;
+      showToast(`Turno pasado a ${nextName}`);
+    }
+
+    function inspectObject(hotspotId) {
+      const spot = HOTSPOTS.find(h => h.id === hotspotId);
+      if (!spot) return;
+      selectedHotspotId = hotspotId;
+
+      const isNew = !gameState.inspectedHotspots.includes(hotspotId);
+      if (isNew) {
+        if (!canActThisTurn()) return;
+        gameState.inspectedHotspots.push(hotspotId);
+        if (!gameState.unlockedClues.includes(spot.clueId)) {
+          gameState.unlockedClues.push(spot.clueId);
+        }
+        awardPointsAndPassTurn(15);
+        playTone(640, "triangle", 0.15);
+        showToast(`+15 pts • Pista obtenida: ${spot.clueTitle}`);
+        syncState();
+      } else {
+        playTone(400, "sine", 0.08, 0.04);
+      }
+
+      renderAll();
+    }
+
+    function selectSuspect(suspectId) {
+      selectedSuspectId = suspectId;
+      playTone(420, "sine", 0.07, 0.04);
+      renderInterrogation();
+    }
+
+    function askQuestion(suspectId, qIndex) {
+      const key = `${suspectId}_${qIndex}`;
+      if (!gameState.askedQuestions.includes(key)) {
+        gameState.askedQuestions.push(key);
+        syncState();
+      }
+      playTone(500, "sine", 0.09, 0.05);
+      renderInterrogation();
+    }
+
+    function presentEvidence() {
+      if (!canActThisTurn()) return;
+      const clueId = document.getElementById("evidenceSelect").value;
+      if (!clueId) {
+        showToast("Seleccioná una prueba del desplegable primero.");
+        return;
+      }
+
+      const suspect = SUSPECTS.find(s => s.id === selectedSuspectId);
+      if (!suspect) return;
+
+      if (suspect.weaknessClue === clueId) {
+        if (!gameState.brokenAlibis.includes(suspect.id)) {
+          gameState.brokenAlibis.push(suspect.id);
+          awardPointsAndPassTurn(25);
+          playTone(720, "triangle", 0.22);
+          showToast(`+25 pts • ¡Contradicción detectada en ${suspect.name}!`);
+        } else {
+          showToast("Ya confrontaste esta coartada.");
+        }
+      } else {
+        awardPointsAndPassTurn(-5);
+        playTone(190, "sawtooth", 0.18, 0.06);
+        showToast("-5 pts • Esa prueba no contradice su declaración.");
+      }
+
+      syncState();
+      renderAll();
+    }
+
+    function saveScratchpad() {
+      gameState.scratchpad = document.getElementById("scratchpadInput").value;
+      clearTimeout(window._scratchTimer);
+      window._scratchTimer = setTimeout(() => syncState(), 500);
+    }
+
+    function submitDeduction() {
+      const suspect = document.getElementById("accuseSuspect").value;
+      const weapon = document.getElementById("accuseWeapon").value;
+      const motive = document.getElementById("accuseMotive").value;
+
+      if (!suspect || !weapon || !motive) {
+        showToast("Completá las 3 opciones antes de presentar la acusación.");
+        return;
+      }
+
+      const okSuspect = suspect === "julian";
+      const okWeapon = weapon === "capsula_medicamento";
+      const okMotive = motive === "chantaje";
+      const hits = [okSuspect, okWeapon, okMotive].filter(Boolean).length;
+
+      let bonus = 0;
+      if (hits === 3) bonus = 50;
+      else if (hits === 2) bonus = 20;
+
+      if (!gameState.solved) {
+        gameState.p1Score += bonus;
+        gameState.solved = true;
+      }
+
+      const totalScore = gameState.p1Score + (gameState.mode !== "solo" ? gameState.p2Score : 0);
+      let rank = "Detective Novato";
+      if (hits === 3 && totalScore >= 180) rank = "Maestro de Scotland Yard 🏆";
+      else if (hits === 3) rank = "Inspector Jefe 🎖️";
+      else if (hits >= 2) rank = "Investigador Asociado 🔍";
+
+      const coopBreakdown = gameState.mode !== "solo"
+        ? `<p style="margin-top:0.6rem; font-size:0.9rem; color:var(--accent-cyan);">
+             <strong>Desempeño en Pareja:</strong> ${gameState.p1Name} (${gameState.p1Score} pts) + ${gameState.p2Name} (${gameState.p2Score} pts) = <strong>${totalScore} pts totales</strong>
+           </p>`
+        : `<p style="margin-top:0.6rem; font-size:0.9rem; color:var(--accent-gold);"><strong>Puntaje Final:</strong> ${totalScore} pts</p>`;
+
+      gameState.verdictHtml = `
+        <h3 style="color:${hits === 3 ? 'var(--accent-green)' : 'var(--accent-gold)'}; margin-bottom:0.5rem;">
+          ${hits === 3 ? "✅ ¡CASO RESUELTO CON ÉXITO!" : `⚖️ Veredicto Parcial (${hits}/3 aciertos)`}
+        </h3>
+        <p style="font-size:0.92rem; margin-bottom:0.65rem;">
+          <strong>Rango obtenido:</strong> ${rank}
+        </p>
+        ${coopBreakdown}
+        <hr style="border-color:var(--border-color); margin:0.9rem 0;" />
+        <p style="font-size:0.88rem; color:var(--text-muted);">
+          <strong>Reconstrucción oficial:</strong> El <strong>Dr. Julián Ortega</strong> descubrió que Arturo Valdés iba a denunciarlo por falsificar certificados médicos en la bodega. A las 21:15 ingresó al estudio y sustituyó una cápsula antihipertensiva por otra cargada con <strong>aconitina</strong>, calculando que haría efecto 40 minutos después mientras él fingía descansar en su habitación y Arturo permanecía encerrado por dentro.
+        </p>
+      `;
+
+      playTone(hits === 3 ? 780 : 420, "triangle", 0.3);
+      syncState();
+      renderAll();
+    }
+
+    function resetGame() {
+      const prevMode = gameState.mode;
+      const p1 = gameState.p1Name;
+      const p2 = gameState.p2Name;
+      gameState = createInitialState();
+      gameState.mode = prevMode;
+      gameState.p1Name = p1;
+      gameState.p2Name = p2;
+      selectedHotspotId = null;
+      selectedSuspectId = "elena";
+      document.getElementById("accuseSuspect").value = "";
+      document.getElementById("accuseWeapon").value = "";
+      document.getElementById("accuseMotive").value = "";
+      syncState();
+      renderAll();
+      switchTab("briefing");
+      showToast("Caso reiniciado.");
+    }
+
+    // ==========================================
+    // 6. RENDERIZADO DE INTERFAZ
+    // ==========================================
+    function renderAll() {
+      // Barra cooperativa / online
+      const coopBar = document.getElementById("coopBar");
+      if (gameState.mode !== "solo" && (gameState.started || roomCode)) {
+        coopBar.classList.add("active");
+        document.getElementById("labelP1").textContent = gameState.p1Name;
+        document.getElementById("labelP2").textContent = gameState.p2Name;
+        document.getElementById("scoreP1").textContent = `${gameState.p1Score} pts`;
+        document.getElementById("scoreP2").textContent = `${gameState.p2Score} pts`;
+        document.getElementById("teamTotalScore").textContent = `${gameState.p1Score + gameState.p2Score} pts`;
+
+        const pill1 = document.getElementById("pillP1");
+        const pill2 = document.getElementById("pillP2");
+        pill1.classList.toggle("active-p1", gameState.currentTurn === 1);
+        pill2.classList.toggle("active-p2", gameState.currentTurn === 2);
+
+        const roomBadge = document.getElementById("roomBadge");
+        const btnCopy = document.getElementById("btnCopyLink");
+        if (gameState.mode === "online" && roomCode) {
+          roomBadge.style.display = "inline-block";
+          roomBadge.textContent = `SALA: ${roomCode}`;
+          btnCopy.style.display = "inline-flex";
+        } else {
+          roomBadge.style.display = "none";
+          btnCopy.style.display = "none";
+        }
+      } else {
+        coopBar.classList.remove("active");
+      }
+
+      // Contadores de pestañas
+      document.getElementById("countClues").textContent = `${gameState.unlockedClues.length}/${HOTSPOTS.length}`;
+      document.getElementById("countAlibis").textContent = `${gameState.brokenAlibis.length}/${SUSPECTS.length}`;
+
+      renderScene();
+      renderInterrogation();
+      renderNotebook();
+
+      const verdictBox = document.getElementById("verdictBox");
+      if (gameState.solved && gameState.verdictHtml) {
+        verdictBox.innerHTML = gameState.verdictHtml;
+        verdictBox.classList.add("visible");
+      } else {
+        verdictBox.classList.remove("visible");
+      }
+    }
+
+    function renderScene() {
+      const mapEl = document.getElementById("roomMap");
+      mapEl.innerHTML = HOTSPOTS.map(spot => {
+        const done = gameState.inspectedHotspots.includes(spot.id);
+        return `
+          <button class="hotspot-btn ${done ? 'inspected' : ''}" onclick="inspectObject('${spot.id}')">
+            <span class="hotspot-icon">${spot.icon}</span>
+            <span class="hotspot-title">${spot.title}</span>
+            <span class="hotspot-status">${done ? '✓ Revisado' : 'Sin inspeccionar'}</span>
+          </button>
+        `;
+      }).join("");
+
+      document.getElementById("sceneProgressText").textContent =
+        `${gameState.inspectedHotspots.length} de ${HOTSPOTS.length} zonas revisadas`;
+
+      if (selectedHotspotId) {
+        const spot = HOTSPOTS.find(h => h.id === selectedHotspotId);
+        if (spot) {
+          document.getElementById("inspectTitle").textContent = `${spot.icon} ${spot.title}`;
+          document.getElementById("inspectDesc").textContent = spot.desc;
+          document.getElementById("inspectClueBadge").innerHTML =
+            `<div class="clue-tag">🔎 Pista: ${spot.clueTitle}</div>
+             <p style="font-size:0.86rem; margin-top:0.5rem; color:var(--text-main);">${spot.clueDetail}</p>`;
+        }
+      }
+    }
+
+    function renderInterrogation() {
+      const cardsEl = document.getElementById("suspectCards");
+      cardsEl.innerHTML = SUSPECTS.map(s => {
+        const isBroken = gameState.brokenAlibis.includes(s.id);
+        return `
+          <div class="suspect-card ${s.id === selectedSuspectId ? 'active' : ''} ${isBroken ? 'broken' : ''}"
+               onclick="selectSuspect('${s.id}')">
+            <div style="font-weight:700; font-size:0.98rem;">${s.name}</div>
+            <div class="suspect-role">${s.role}</div>
+            <div style="font-size:0.75rem; margin-top:0.45rem; color:${isBroken ? 'var(--accent-red)' : 'var(--text-muted)'};">
+              ${isBroken ? '⚠️ Coartada confrontada' : 'Coartada intacta'}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      const suspect = SUSPECTS.find(s => s.id === selectedSuspectId) || SUSPECTS[0];
+      const isBroken = gameState.brokenAlibis.includes(suspect.id);
+
+      document.getElementById("currentSuspectName").textContent = `${suspect.name} — ${suspect.role}`;
+      document.getElementById("currentSuspectAlibi").textContent = `Coartada: "${suspect.alibi}"`;
+
+      const badge = document.getElementById("alibiStatusBadge");
+      badge.textContent = isBroken ? "Coartada Confrontada" : "Coartada sin verificar";
+      badge.style.borderColor = isBroken ? "var(--accent-red)" : "var(--accent-gold)";
+      badge.style.color = isBroken ? "var(--accent-red)" : "var(--accent-gold)";
+
+      // Preguntas
+      const qList = document.getElementById("questionsList");
+      qList.innerHTML = suspect.questions.map((item, idx) => `
+        <button class="btn" onclick="askQuestion('${suspect.id}', ${idx})">💬 ${item.q}</button>
+      `).join("");
+
+      // Log de diálogo
+      const logEl = document.getElementById("dialogueLog");
+      let msgs = [];
+      suspect.questions.forEach((item, idx) => {
+        if (gameState.askedQuestions.includes(`${suspect.id}_${idx}`)) {
+          msgs.push(`<div class="msg-bubble"><strong>Pregunta:</strong> ${item.q}<br/><strong>${suspect.name}:</strong> "${item.a}"</div>`);
+        }
+      });
+      if (isBroken) {
+        msgs.push(`<div class="msg-bubble breakthrough"><strong>⚡ Confrontación Exitosa:</strong><br/>${suspect.confrontSuccess}</div>`);
+      }
+      logEl.innerHTML = msgs.length
+        ? msgs.join("")
+        : `<div style="color:var(--text-muted); font-size:0.88rem;">Hacé preguntas o elegí una evidencia recolectada para confrontar a ${suspect.name}.</div>`;
+
+      // Selector de pruebas
+      const selectEl = document.getElementById("evidenceSelect");
+      const currentVal = selectEl.value;
+      const unlockedSpots = HOTSPOTS.filter(h => gameState.unlockedClues.includes(h.clueId));
+      selectEl.innerHTML = `<option value="">-- Elegir prueba para confrontar (${unlockedSpots.length}) --</option>` +
+        unlockedSpots.map(h => `<option value="${h.clueId}">${h.clueTitle}</option>`).join("");
+      if (unlockedSpots.some(h => h.clueId === currentVal)) {
+        selectEl.value = currentVal;
+      }
+    }
+
+    function renderNotebook() {
+      const cluesEl = document.getElementById("notebookCluesList");
+      const unlockedSpots = HOTSPOTS.filter(h => gameState.unlockedClues.includes(h.clueId));
+
+      if (!unlockedSpots.length) {
+        cluesEl.innerHTML = `<p style="color:var(--text-muted); font-size:0.88rem;">Todavía no recolectaste pruebas en la escena del crimen.</p>`;
+      } else {
+        cluesEl.innerHTML = unlockedSpots.map(h => `
+          <div class="clue-item">
+            <div style="font-weight:700; color:var(--accent-gold);">${h.icon} ${h.clueTitle}</div>
+            <div style="color:var(--text-main); margin-top:0.25rem;">${h.clueDetail}</div>
+          </div>
+        `).join("");
+      }
+
+      const timelineEl = document.getElementById("notebookTimeline");
+      const events = unlockedSpots
+        .map(h => h.timeline)
+        .sort((a, b) => a.time.localeCompare(b.time));
+
+      if (!events.length) {
+        timelineEl.innerHTML = `<p style="color:var(--text-muted); font-size:0.88rem;">Inspeccioná objetos para reconstruir la línea de tiempo de la noche.</p>`;
+      } else {
+        timelineEl.innerHTML = events.map(ev => `
+          <div class="timeline-item">
+            <div class="timeline-time">${ev.time} hs</div>
+            <div>${ev.text}</div>
+          </div>
+        `).join("");
+      }
+
+      const scratchEl = document.getElementById("scratchpadInput");
+      if (document.activeElement !== scratchEl) {
+        scratchEl.value = gameState.scratchpad || "";
+      }
+    }
+
+    // ==========================================
+    // 7. PERSISTENCIA LOCAL Y ONLINE (SUPABASE)
+    // ==========================================
+    function saveLocalState() {
+      try {
+        localStorage.setItem("detective_valdes_state", JSON.stringify(gameState));
+      } catch (e) {}
+    }
+
+    function loadLocalState() {
+      try {
+        const raw = localStorage.getItem("detective_valdes_state");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          gameState = { ...createInitialState(), ...parsed };
+        }
+      } catch (e) {}
+    }
+
+    function openSupabaseModal() {
+      document.getElementById("sbUrlInput").value = localStorage.getItem("detective_sb_url") || "";
+      document.getElementById("sbKeyInput").value = localStorage.getItem("detective_sb_key") || "";
+      document.getElementById("supabaseModal").classList.add("open");
+    }
+
+    function closeSupabaseModal() {
+      document.getElementById("supabaseModal").classList.remove("open");
+    }
+
+    function saveSupabaseConfig() {
+      const url = document.getElementById("sbUrlInput").value.trim();
+      const key = document.getElementById("sbKeyInput").value.trim();
+      if (!url || !key) {
+        showToast("Completá URL y Anon Key de Supabase.");
+        return;
+      }
+      localStorage.setItem("detective_sb_url", url);
+      localStorage.setItem("detective_sb_key", key);
+      initSupabaseClient();
+      closeSupabaseModal();
+      showToast("Credenciales de Supabase guardadas.");
+    }
+
+    function copySqlScript() {
+      const sql = document.getElementById("sqlScriptBlock").textContent;
+      navigator.clipboard.writeText(sql).then(() => {
+        showToast("SQL copiado al portapapeles.");
+      });
+    }
+
+    function initSupabaseClient() {
+      const url = localStorage.getItem("detective_sb_url");
+      const key = localStorage.getItem("detective_sb_key");
+      if (url && key && window.supabase) {
+        supabaseClient = window.supabase.createClient(url, key);
+        return true;
+      }
+      return false;
+    }
+
+    function generateRoomCode() {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let code = "";
+      for (let i = 0; i < 6; i++) {
+        code += chars[Math.floor(Math.random() * chars.length)];
+      }
+      return code;
+    }
+
+    async function createOnlineRoom() {
+      if (!initSupabaseClient()) {
+        openSupabaseModal();
+        showToast("Primero configurá tu URL y Key de Supabase.");
+        return;
+      }
+
+      const hostName = document.getElementById("onlinePlayerName").value.trim() || "Detective 1";
+      roomCode = generateRoomCode();
+      localPlayerSlot = 1;
+
+      gameState = createInitialState();
+      gameState.mode = "online";
+      gameState.started = true;
+      gameState.p1Name = hostName;
+      gameState.p2Name = "Esperando pareja...";
+      gameState.currentTurn = 1;
+
+      const { error } = await supabaseClient
+        .from("detective_rooms")
+        .upsert({ room_code: roomCode, state: gameState });
+
+      if (error) {
+        showToast("Error creando sala: " + error.message);
+        return;
+      }
+
+      subscribeToRoom(roomCode);
+      renderAll();
+      switchTab("scene");
+      showToast(`Sala ${roomCode} creada. Compartí el link con tu pareja.`);
+    }
+
+    async function joinOnlineRoom() {
+      if (!initSupabaseClient()) {
+        openSupabaseModal();
+        showToast("Primero configurá tu URL y Key de Supabase.");
+        return;
+      }
+
+      const code = document.getElementById("joinRoomCode").value.trim().toUpperCase();
+      if (!code) {
+        showToast("Ingresá el código de sala.");
+        return;
+      }
+
+      const guestName = document.getElementById("onlinePlayerName").value.trim() || "Detective 2";
+      const { data, error } = await supabaseClient
+        .from("detective_rooms")
+        .select("state")
+        .eq("room_code", code)
+        .single();
+
+      if (error || !data) {
+        showToast("No se encontró esa sala. Verificá el código.");
+        return;
+      }
+
+      roomCode = code;
+      localPlayerSlot = 2;
+      gameState = { ...createInitialState(), ...data.state, mode: "online", started: true };
+      gameState.p2Name = guestName;
+
+      await supabaseClient
+        .from("detective_rooms")
+        .update({ state: gameState, updated_at: new Date().toISOString() })
+        .eq("room_code", roomCode);
+
+      subscribeToRoom(roomCode);
+      renderAll();
+      switchTab("scene");
+      showToast(`Conectado a la sala ${roomCode} junto a ${gameState.p1Name}.`);
+    }
+
+    function subscribeToRoom(code) {
+      if (!supabaseClient) return;
+      if (realtimeChannel) {
+        supabaseClient.removeChannel(realtimeChannel);
+      }
+
+      realtimeChannel = supabaseClient
+        .channel("room_" + code)
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "detective_rooms", filter: `room_code=eq.${code}` },
+          payload => {
+            if (payload.new && payload.new.state) {
+              isRemoteUpdate = true;
+              gameState = { ...createInitialState(), ...payload.new.state, mode: "online" };
+              renderAll();
+              isRemoteUpdate = false;
+            }
+          }
+        )
+        .subscribe();
+    }
+
+    async function syncState() {
+      saveLocalState();
+      if (gameState.mode === "online" && supabaseClient && roomCode && !isRemoteUpdate) {
+        await supabaseClient
+          .from("detective_rooms")
+          .update({ state: gameState, updated_at: new Date().toISOString() })
+          .eq("room_code", roomCode);
+      }
+    }
+
+    function copyRoomLink() {
+      if (!roomCode) return;
+      const url = new URL(window.location.href);
+      url.searchParams.set("sala", roomCode);
+      navigator.clipboard.writeText(url.toString()).then(() => {
+        showToast("¡Link de invitación copiado! Mandáselo por WhatsApp.");
+      });
+    }
+
+    // ==========================================
+    // 8. INICIALIZACIÓN Y EXPOSICIÓN GLOBAL
+    // ==========================================
+    window.switchTab = switchTab;
+    window.selectGameMode = selectGameMode;
+    window.startInvestigation = startInvestigation;
+    window.inspectObject = inspectObject;
+    window.selectSuspect = selectSuspect;
+    window.askQuestion = askQuestion;
+    window.presentEvidence = presentEvidence;
+    window.manualPassTurn = manualPassTurn;
+    window.saveScratchpad = saveScratchpad;
+    window.submitDeduction = submitDeduction;
+    window.resetGame = resetGame;
+    window.toggleAudio = toggleAudio;
+    window.openSupabaseModal = openSupabaseModal;
+    window.closeSupabaseModal = closeSupabaseModal;
+    window.saveSupabaseConfig = saveSupabaseConfig;
+    window.copySqlScript = copySqlScript;
+    window.createOnlineRoom = createOnlineRoom;
+    window.joinOnlineRoom = joinOnlineRoom;
+    window.copyRoomLink = copyRoomLink;
+
+    window.addEventListener("DOMContentLoaded", () => {
+      initSupabaseClient();
+      const params = new URLSearchParams(window.location.search);
+      const inviteCode = params.get("sala");
+
+      if (inviteCode) {
+        selectGameMode("online");
+        document.getElementById("joinRoomCode").value = inviteCode.toUpperCase();
+        document.getElementById("onlinePlayerName").value = "Sofi";
+        showToast(`Invitación a sala ${inviteCode.toUpperCase()} detectada. Tocá "Unirse a Sala".`);
+      } else {
+        loadLocalState();
+        selectGameMode(gameState.mode || "solo");
+        document.getElementById("inputP1Name").value = gameState.p1Name || "Jhon";
+        document.getElementById("inputP2Name").value = gameState.p2Name || "Sofi";
+      }
+
+      renderAll();
+    });
+  </script>
+</body>
+</html>
